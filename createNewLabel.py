@@ -7,7 +7,7 @@ MONDAY_API_URL = "https://api.monday.com/v2"
 
 BOARD_ID = '1727326681'  # Board ID
 SOCIETE_COLUMN_ID = "soci_t___1"  # Dropdown column ID
-ITEM_ID = 1750433895  # Item ID from the board
+ITEM_ID = 1750434075  # Item ID from the board
 
 # Helper function to run GraphQL queries
 def run_query(query):
