@@ -18,7 +18,7 @@ def run_query(query):
         raise Exception(f"Query failed with status code {response.status_code}: {response.text}")
     return response.json()
 
-# Step 2: Fetch board columns
+# Fetch board columns
 def get_board_columns(board_id):
     query = f'''
     query {{
