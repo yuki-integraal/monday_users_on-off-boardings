@@ -1,11 +1,13 @@
+import json
 import requests
 
 # Monday.com API details
 MONDAY_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQyNTM1MTE1OSwiYWFpIjoxMSwidWlkIjo2NzUwOTkwOSwiaWFkIjoiMjAyNC0xMC0xOFQxNDowNjoyOC4yMDhaIiwicGVyIjoibWU6d3JpdGUiLCJhY3RpZCI6MjUwNDU4MTAsInJnbiI6ImV1YzEifQ.K7dNTAl61apgnSHdAm8rYCIrzPe_Tkw1ArqeylsFu2g'
-MONDAY_BOARD_ID = '1727326681'
-
-# Monday.com API endpoint
 MONDAY_API_URL = "https://api.monday.com/v2"
+
+BOARD_ID = '1727326681'  # Board ID
+SOCIETE_COLUMN_ID = "soci_t___1"  # Dropdown column ID
+SHORT_TEXT_COLUMN_ID = "short_text_mkkb1qte"  # Short text column ID
 
 # Helper function to run GraphQL queries
 def run_query(query):
@@ -18,88 +20,89 @@ def run_query(query):
         raise Exception(f"Query failed with status code {response.status_code}: {response.text}")
     return response.json()
 
-# Fetch board columns
-def get_board_columns(board_id):
-    query = f'''
+# Get all items on the board
+def get_all_items(board_id):
+    query = f"""
     query {{
-      boards(ids: {board_id}) {{
-        columns {{
-          id
-          title
+        boards(ids: {board_id}) {{
+            items {{
+                id
+                name
+                column_values {{
+                    id
+                    text
+                }}
+            }}
         }}
-      }}
     }}
-    '''
+    """
     data = run_query(query)
-    columns = data.get('data', {}).get('boards', [])[0].get('columns', [])
-    return {column['title']: column['id'] for column in columns}
+    items = data.get('data', {}).get('boards', [])[0].get('items', [])
+    return items
 
-# Fetch board items
-def get_board_items(board_id):
-    query = f'''
+# Get current dropdown options for a column
+def get_dropdown_options(board_id, column_id):
+    query = f"""
     query {{
-      boards(ids: {board_id}) {{
-        items {{
-          id
-          name
-          column_values {{
+        boards(ids: {board_id}) {{
+            columns(ids: "{column_id}") {{
+                settings_str
+            }}
+        }}
+    }}
+    """
+    data = run_query(query)
+    settings_str = data.get('data', {}).get('boards', [])[0].get('columns', [])[0].get('settings_str', '{}')
+    settings = json.loads(settings_str)
+    return [label['name'] for label in settings.get('labels', [])]
+
+# Update the dropdown column value and create the label if missing
+def update_dropdown_label(board_id, item_id, column_id, label):
+    mutation = f"""
+    mutation {{
+        change_simple_column_value(
+            board_id: {board_id},
+            item_id: {item_id},
+            column_id: "{column_id}",
+            value: "{label}",
+            create_labels_if_missing: true
+        ) {{
             id
-            text
-          }}
         }}
-      }}
     }}
-    '''
-    data = run_query(query)
-    boards = data.get('data', {}).get('boards', [])
-    if not boards:
-        raise Exception(f"No boards found with ID {board_id}")
-    return boards[0].get('items', [])
+    """
+    response = run_query(mutation)
+    return response
 
-# Create a new label for a column
-def create_label(board_id, column_id, label_name):
-    query = f'''
-    mutation {{
-      create_label(board_id: {board_id}, column_id: "{column_id}", label: "{label_name}") {{
-        id
-      }}
-    }}
-    '''
-    run_query(query)
+# Main script
+def process_board_items(board_id, dropdown_column_id, short_text_column_id):
+    # Step 1: Get all items on the board
+    items = get_all_items(board_id)
+    print(f"Found {len(items)} items on the board.")
 
-# Update a column value for an item
-def update_item_column(item_id, column_id, value):
-    query = f'''
-    mutation {{
-      change_column_value(item_id: {item_id}, column_id: "{column_id}", value: "{value}") {{
-        id
-      }}
-    }}
-    '''
-    run_query(query)
-
-# Main logic
-def main():
-    # Fetch column IDs
-    columns = get_board_columns(MONDAY_BOARD_ID)
-    society_column_id = columns.get("Société")
-    name_of_society_column_id = columns.get("Nom de la société")
-
-    if not society_column_id or not name_of_society_column_id:
-        raise Exception("Required columns 'society' or 'name_of_society' are missing.")
-
-    # Fetch board items
-    items = get_board_items(MONDAY_BOARD_ID)
-
+    # Step 2: Iterate through items
     for item in items:
-        society_value = next((col['text'] for col in item['column_values'] if col['id'] == society_column_id), None)
-        name_of_society_value = next((col['text'] for col in item['column_values'] if col['id'] == name_of_society_column_id), None)
+        item_id = item['id']
+        column_values = {col['id']: col['text'] for col in item.get('column_values', [])}
+        
+        dropdown_value = column_values.get(dropdown_column_id)
+        short_text_value = column_values.get(short_text_column_id)
 
-        if society_value == "Other" and name_of_society_value:
-            # Create a new label and update the society column
-            create_label(MONDAY_BOARD_ID, society_column_id, name_of_society_value)
-            update_item_column(item['id'], society_column_id, name_of_society_value)
-            print(f"Updated item {item['id']} with new label: {name_of_society_value}")
+        print(f"Processing Item {item_id} - Dropdown: {dropdown_value}, Short Text: {short_text_value}")
+        
+        # Check if dropdown value is 'Autre... / Other...'
+        if dropdown_value == "Autre... / Other..." and short_text_value:
+            print(f"Updating dropdown label for Item {item_id} to '{short_text_value}'...")
+            try:
+                # Step 3: Update dropdown column value
+                response = update_dropdown_label(board_id, item_id, dropdown_column_id, short_text_value)
+                print(f"Successfully updated Item {item_id}: {response}")
+            except Exception as e:
+                print(f"Failed to update Item {item_id}: {e}")
 
+# Execute the script
 if __name__ == "__main__":
-    main()
+    try:
+        process_board_items(BOARD_ID, SOCIETE_COLUMN_ID, SHORT_TEXT_COLUMN_ID)
+    except Exception as e:
+        print(f"Error: {e}")
