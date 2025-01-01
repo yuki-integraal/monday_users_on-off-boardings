@@ -45,10 +45,10 @@ def ensure_dropdown_label_exists(board_id, column_id, item_id, label):
     # Step 2: Check if 'tomate' exists
     if label in dropdown_options:
         print(f"'{label}' already exists in the dropdown options.")
-        return
-
+    else:
+        print(f"'{label}' not found in the dropdown options. Adding it dynamically...")
+    
     # Step 3: Add 'tomate' using change_simple_column_value
-    print(f"'{label}' not found in the dropdown options. Adding it dynamically...")
     mutation = f"""
     mutation {{
         change_simple_column_value(
