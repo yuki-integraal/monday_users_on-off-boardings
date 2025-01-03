@@ -7,7 +7,7 @@ MONDAY_API_URL = "https://api.monday.com/v2"
 
 BOARD_ID = '1727326681'  # Board ID
 SOCIETE_COLUMN_ID = "soci_t___1"  # Dropdown column ID
-ITEM_ID = 1750434075  # Item ID from the board
+ITEM_ID = 1750482913  # Item ID from the board
 
 # Helper function to run GraphQL queries
 def run_query(query):
@@ -68,6 +68,6 @@ def ensure_dropdown_label_exists(board_id, column_id, item_id, label):
 # Main execution
 if __name__ == "__main__":
     try:
-        ensure_dropdown_label_exists(BOARD_ID, SOCIETE_COLUMN_ID, ITEM_ID, "tomate")
+        ensure_dropdown_label_exists(BOARD_ID, SOCIETE_COLUMN_ID, ITEM_ID, "FEWE")
     except Exception as e:
         print(f"Error: {e}")
