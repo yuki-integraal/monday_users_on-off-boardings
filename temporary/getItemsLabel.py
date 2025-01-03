@@ -26,13 +26,21 @@ def run_query(query):
     return response_data
 
 # Function to fetch all items with their "Société" label
-def get_items_with_societe_label(board_id, column_id):
+def get_items_with_societe_label(board_id, column_id, new_column_id):
     query = f"""
     query {{
         boards(ids: {board_id}) {{
             items_page {{
                 items {{
                     id
+                    column_values (ids: ["{column_id}", "{new_column_id}"]) {{
+                        column {{
+                            id
+                            title
+                        }}
+                        id
+                        text
+                    }}
                 }}
             }}
         }}
@@ -49,17 +57,17 @@ def get_items_with_societe_label(board_id, column_id):
 
     if not items:
         raise Exception("No items found on the board.")
-    
+
     # Extract item details and "Société" labels
     items_with_labels = []
     for item in items:
         item_id = item.get('id')
-        item_name = item.get('name')
         societe_label = item.get('column_values', [{}])[0].get('text', None)
+        new_societe_label = item.get('column_values', [{}])[1].get('text', None)
         items_with_labels.append({
             "id": item_id,
-            "name": item_name,
-            "societe": societe_label
+            "societe": societe_label,
+            "new_societe": new_societe_label
         })
 
     return items_with_labels
@@ -67,11 +75,12 @@ def get_items_with_societe_label(board_id, column_id):
 # Main execution
 if __name__ == "__main__":
     SOCIETE_COLUMN_ID = "soci_t___1"  # Column ID for Société
+    NEW_SOCIETE_COLUMN_ID = "short_text_mkkb1qte"  # Column ID for new Société
     
     try:
-        items = get_items_with_societe_label(MONDAY_BOARD_ID, SOCIETE_COLUMN_ID)
+        items = get_items_with_societe_label(MONDAY_BOARD_ID, SOCIETE_COLUMN_ID, NEW_SOCIETE_COLUMN_ID)
         print("Items with their 'Société' label:")
         for item in items:
-            print(f"ID: {item['id']}, Name: {item['name']}, Société: {item['societe']}")
+            print(f"ID: {item['id']}, Société: {item['societe']}, New Société: {item['new_societe']}")
     except Exception as e:
         print(f"Error: {e}")
