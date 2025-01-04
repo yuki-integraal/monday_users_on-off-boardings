@@ -8,6 +8,9 @@ MONDAY_BOARD_ID = '1727326681'
 SOCIETE_COLUMN_ID = "soci_t___1"  # Column ID for Société
 NEW_SOCIETE_COLUMN_ID = "short_text_mkkb1qte"  # Column ID for new Société
 
+SUBSIDIARY_COLUMN_ID = "filiale1__1"  # Column ID for Filiale
+NEW_SUBSIDIARY_COLUMN_ID = "short_text_mkkna6ve"  # Column ID for new Filiale
+
 # Monday.com API endpoint
 MONDAY_API_URL = "https://api.monday.com/v2"
 
@@ -146,5 +149,13 @@ if __name__ == "__main__":
             if item['societe'] == 'Autre... / Other...' and item['new_societe'] != '':
                 ensure_dropdown_label_exists(MONDAY_BOARD_ID, SOCIETE_COLUMN_ID, item['id'], item['new_societe'])
                 remove_new_societe_text(MONDAY_BOARD_ID, NEW_SOCIETE_COLUMN_ID, item['id'])
+
+        items = get_items_with_societe_label(MONDAY_BOARD_ID, SUBSIDIARY_COLUMN_ID, NEW_SUBSIDIARY_COLUMN_ID)
+        for item in items:
+            print(f"ID: {item['id']}, Filiale: {item['societe']}, New Filiale: {item['new_societe']}")
+            if item['societe'] == 'Autre... / Other...' and item['new_societe'] != '':
+                ensure_dropdown_label_exists(MONDAY_BOARD_ID, SUBSIDIARY_COLUMN_ID, item['id'], item['new_societe'])
+                remove_new_societe_text(MONDAY_BOARD_ID, NEW_SUBSIDIARY_COLUMN_ID, item['id'])
+                
     except Exception as e:
         print(f"Error: {e}")
