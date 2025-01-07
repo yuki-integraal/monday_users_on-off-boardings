@@ -22,7 +22,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add event listener to the submit button
     submitButton.addEventListener("click", () => {
         const selectedCheckboxes = Array.from(dropdownContent.querySelectorAll("input[type='checkbox']:checked"));
-        const selectedIds = selectedCheckboxes.map(checkbox => checkbox.value);
-        alert(`Selected User IDs: ${selectedIds.join(", ")}`);
+        const deletedIds = selectedCheckboxes.map(checkbox => checkbox.value);
+        
+        // Redirect to the second page with selected user IDs in the query string
+        const queryString = `?deletedIds=${encodeURIComponent(deletedIds.join(","))}`;
+        location.href = `afterSubmission/index.html${queryString}`;
     });
 });
