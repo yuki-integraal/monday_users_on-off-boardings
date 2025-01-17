@@ -2,6 +2,10 @@ const MONDAY_API_KEY = 'eyJhbGciOiJIUzI1NiJ9.eyJ0aWQiOjQyNTM1MTE1OSwiYWFpIjoxMSw
 const MONDAY_BOARD_ID = '1727326681';
 const MONDAY_API_URL = 'https://api.monday.com/v2';
 
+// Temporary constants for the client name and user name
+const CLIENT_NAME = 'MALCA-AMIT';
+const CLIENT_USER_NAME = 'Yuki admin';
+
 // Helper function to run GraphQL queries
 async function runQuery(query) {
     const headers = {
@@ -78,23 +82,70 @@ async function getUsersInfo(boardId, firstname, lastname, email) {
     return itemsWithLabels;
 }
 
+// Button logic
+const submitButton = document.getElementById("submitButton");
+submitButton.addEventListener("mouseover", () => {
+    submitButton.textContent = "Delete users (definitive)";
+});
+submitButton.addEventListener("mouseout", () => {
+    submitButton.textContent = "X";
+});
+
 // Modify your existing DOMContentLoaded function to use the dynamically fetched users
 document.addEventListener("DOMContentLoaded", async () => {
+    document.getElementById("client-name").textContent = CLIENT_NAME;
+    document.getElementById("company-logo").src = `../assets/images/companies/${CLIENT_NAME}.png`;
+    document.getElementById("client-username").textContent = CLIENT_USER_NAME;
+
     const dropdownContent = document.querySelector(".dropdown-content");
     const submitButton = document.getElementById("submitButton");
 
     try {
         // Fetch users from the Monday.com board
-        const users = await getUsersInfo(MONDAY_BOARD_ID, 'pr_nom__1', 'text__1', 'email__1');
+        let users = await getUsersInfo(MONDAY_BOARD_ID, 'pr_nom__1', 'text__1', 'email__1');
+
+        // Sort the users alphabetically
+        users = users.sort((a, b) => a.firstname.localeCompare(b.firstname));
+
+        dropdownContent.innerHTML = "";
+
+        let count = 0;
 
         // Populate the dropdown with checkboxes
         users.forEach(user => {
-            const label = document.createElement("label");
-            label.innerHTML = `
+            const row = document.createElement("div");
+            row.classList.add("grid-row");
+
+            // Create checkbox column
+            const checkboxCell = document.createElement("div");
+            checkboxCell.innerHTML = `
                 <input type="checkbox" value="${user.id}" data-firstname="${user.firstname}" data-lastname="${user.lastname}">
-                ${user.firstname} ${user.lastname}
             `;
-            dropdownContent.appendChild(label);
+            if (count % 2 === 0) {
+                checkboxCell.style = "background-color:rgb(176, 176, 176);";
+            } else {
+                checkboxCell.style = "background-color:rgb(218, 218, 218);";
+            }
+            row.appendChild(checkboxCell);
+
+            // Create firstname column
+            const firstnameCell = document.createElement("div");
+            firstnameCell.textContent = user.firstname;
+            row.appendChild(firstnameCell);
+
+            // Create lastname column
+            const lastnameCell = document.createElement("div");
+            lastnameCell.textContent = user.lastname;
+            row.appendChild(lastnameCell);
+
+            // Create email column
+            const emailCell = document.createElement("div");
+            emailCell.textContent = user.email;
+            row.appendChild(emailCell);
+
+            dropdownContent.appendChild(row);
+
+            count++;
         });
 
         // Add event listener to the submit button
