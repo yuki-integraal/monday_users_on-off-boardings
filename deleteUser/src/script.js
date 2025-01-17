@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }).join("&");
 
             // Redirect to the second page with the selected data in the query string
-            location.href = `afterSubmission/index.html?${queryString}`;
+            location.href = `afterSubmission.html?${queryString}`;
         });
 
     } catch (error) {
