@@ -31,7 +31,12 @@ async function runQuery(query) {
 async function deleteItem(itemId) {
     const mutation = `
     mutation {
-        delete_item (item_id: ${itemId}) {
+        change_simple_column_value (
+            board_id: ${MONDAY_BOARD_ID}, 
+            item_id: ${itemId}, 
+            column_id: "status", 
+            value: "2"
+        ) {
             id
         }
     }
@@ -56,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     for (const user of userData) {
         try {
             // Attempt to delete the item on Monday.com
-            // await deleteItem(user.id); REMOVE TO ACTIVATE USER DELETION
+            await deleteItem(user.id); // REMOVE TO ACTIVATE USER DELETION
 
             // Show the name of the successfully deleted user
             const userDiv = document.createElement("div");
@@ -64,6 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             deletedNamesDiv.appendChild(userDiv);
 
         } catch (error) {
+            alert(error.message);
             console.error(`Failed to delete user ${user.firstname} ${user.lastname}: ${error.message}`);
             const errorDiv = document.createElement("div");
             errorDiv.textContent = `Failed to delete: ${user.firstname} ${user.lastname}, please contact support.`;
