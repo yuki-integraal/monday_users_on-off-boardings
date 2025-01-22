@@ -103,3 +103,12 @@ h1, h2 {
 #submitButton:hover {
   background-color: #f55e5e;
 }
+
+
+#thanks {
+  font-weight: bolder;
+}
+#deletedNames {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 20px;
+}

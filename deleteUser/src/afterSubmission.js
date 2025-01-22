@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     for (const user of userData) {
         try {
             // Attempt to delete the item on Monday.com
-            // await deleteItem(user.id); // REMOVE TO ACTIVATE USER DELETION
+            await deleteItem(user.id); // REMOVE TO ACTIVATE USER DELETION
 
             // Show the name of the successfully deleted user
             const userDiv = document.createElement("div");
